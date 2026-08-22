@@ -1,24 +1,91 @@
 <script setup lang="ts">
-import { RouterLink } from 'vue-router'
+import { computed, onMounted } from 'vue'
+import { storeToRefs } from 'pinia'
+import { useRoute, RouterLink } from 'vue-router'
 
 import WeatherHero from '@/components/organisms/WeatherHero.vue'
 import HourlyForecast from '@/components/organisms/HourlyForecast.vue'
 import DailyForecast from '@/components/organisms/DailyForecast.vue'
 
-const hourlyForecast = [
-  { time: '7:00 PM', temperature: 20, icon: '🌧️' },
-  { time: '8:00 PM', temperature: 20, icon: '🌧️' },
-  { time: '9:00 PM', temperature: 19, icon: '☁️' },
-  { time: '10:00 PM', temperature: 19, icon: '☁️' },
-]
+import { useWeatherStore } from '@/stores/weather.store'
 
-const dailyForecast = [
-  { day: 'Today', icon: '🌧️', low: 15, high: 20 },
-  { day: 'Monday', icon: '🌦️', low: 13, high: 18 },
-  { day: 'Tuesday', icon: '☁️', low: 12, high: 17 },
-  { day: 'Wednesday', icon: '🌤️', low: 14, high: 21 },
-  { day: 'Thursday', icon: '☀️', low: 16, high: 23 },
-]
+const route = useRoute()
+const weatherStore = useWeatherStore()
+
+const { currentWeather, forecast, isLoadingWeather, weatherError } = storeToRefs(weatherStore)
+
+const latitude = computed(() => Number(route.params.lat))
+const longitude = computed(() => Number(route.params.lon))
+
+onMounted(async () => {
+  if (Number.isNaN(latitude.value) || Number.isNaN(longitude.value)) {
+    return
+  }
+
+  await weatherStore.loadWeather(latitude.value, longitude.value)
+})
+
+const hourlyForecast = computed(() => {
+  if (!forecast.value) {
+    return []
+  }
+
+  return forecast.value.list.slice(0, 4).map((item) => {
+    const time = new Date(item.dt * 1000).toLocaleTimeString([], {
+      hour: 'numeric',
+      minute: '2-digit',
+    })
+
+    return {
+      time,
+      temperature: Math.round(item.main.temp),
+      icon: item.weather[0]?.main === 'Rain' ? '🌧️' : '☁️',
+    }
+  })
+})
+
+const dailyForecast = computed(() => {
+  if (!forecast.value) {
+    return []
+  }
+
+  const grouped = new Map<
+    string,
+    {
+      day: string
+      icon: string
+      low: number
+      high: number
+    }
+  >()
+
+  for (const item of forecast.value.list) {
+    const date = new Date(item.dt * 1000)
+
+    const key = date.toDateString()
+
+    if (!grouped.has(key)) {
+      grouped.set(key, {
+        day: date.toLocaleDateString([], {
+          weekday: 'long',
+        }),
+        icon: item.weather[0]?.main === 'Rain' ? '🌧️' : '☁️',
+        low: Math.round(item.main.temp_min),
+        high: Math.round(item.main.temp_max),
+      })
+    } else {
+      const existing = grouped.get(key)
+
+      if (existing) {
+        existing.low = Math.min(existing.low, Math.round(item.main.temp_min))
+
+        existing.high = Math.max(existing.high, Math.round(item.main.temp_max))
+      }
+    }
+  }
+
+  return Array.from(grouped.values()).slice(0, 5)
+})
 </script>
 
 <template>
@@ -28,19 +95,38 @@ const dailyForecast = [
         ←
       </RouterLink>
 
-      <WeatherHero
-        city="London"
-        date="Sunday, 22 August"
-        :temperature="20"
-        condition="Moderate Rain"
-        updated-at="6:45 PM"
-      />
+      <p v-if="isLoadingWeather" class="detail-page__status" role="status">Loading weather...</p>
 
-      <div class="detail-page__content">
-        <HourlyForecast :forecast="hourlyForecast" />
+      <p v-else-if="weatherError" class="detail-page__error" role="alert">
+        {{ weatherError }}
+      </p>
 
-        <DailyForecast :forecast="dailyForecast" />
-      </div>
+      <template v-else-if="currentWeather">
+        <WeatherHero
+          :city="currentWeather.name"
+          :date="
+            new Date(currentWeather.dt * 1000).toLocaleDateString([], {
+              weekday: 'long',
+              day: 'numeric',
+              month: 'long',
+            })
+          "
+          :temperature="Math.round(currentWeather.main.temp)"
+          :condition="currentWeather.weather[0]?.description ?? 'Unknown'"
+          :updated-at="
+            new Date(currentWeather.dt * 1000).toLocaleTimeString([], {
+              hour: 'numeric',
+              minute: '2-digit',
+            })
+          "
+        />
+
+        <div class="detail-page__content">
+          <HourlyForecast :forecast="hourlyForecast" />
+
+          <DailyForecast :forecast="dailyForecast" />
+        </div>
+      </template>
     </div>
   </main>
 </template>
@@ -79,6 +165,16 @@ const dailyForecast = [
     gap: 36px;
 
     padding: 28px 20px 48px;
+  }
+
+  &__status,
+  &__error {
+    padding: 100px 20px 40px;
+    text-align: center;
+  }
+
+  &__error {
+    color: #b42318;
   }
 }
 </style>

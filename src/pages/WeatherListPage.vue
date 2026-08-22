@@ -1,11 +1,19 @@
 <script setup lang="ts">
 import { ref } from 'vue'
-import { RouterLink } from 'vue-router'
+import { storeToRefs } from 'pinia'
+import { useRouter, RouterLink } from 'vue-router'
 
 import SearchBar from '@/components/molecules/SearchBar.vue'
+import SearchResultsList from '@/components/organisms/SearchResultsList.vue'
 import WeatherLocationList from '@/components/organisms/WeatherLocationList.vue'
 
-import type { WeatherLocation } from '@/types/weather'
+import { useWeatherStore } from '@/stores/weather.store'
+import type { GeoLocation, WeatherLocation } from '@/types/weather'
+
+const router = useRouter()
+const weatherStore = useWeatherStore()
+
+const { searchResults, isSearching, searchError } = storeToRefs(weatherStore)
 
 const searchQuery = ref('')
 
@@ -21,27 +29,23 @@ const locations: WeatherLocation[] = [
     backgroundImage: 'https://images.unsplash.com/photo-1519692933481-e162a57d6721',
     isCurrentLocation: true,
   },
-  {
-    id: 2,
-    city: 'London',
-    subtitle: '10:30 AM',
-    temperature: 9,
-    high: 16,
-    low: -4,
-    description: 'Not as cold tomorrow, with a high of 16°',
-    backgroundImage: 'https://images.unsplash.com/photo-1500530855697-b586d89ba3ee',
-  },
-  {
-    id: 3,
-    city: 'Milan',
-    subtitle: '10:30 AM',
-    temperature: 18,
-    high: 16,
-    low: -4,
-    description: 'Mostly Cloudy',
-    backgroundImage: 'https://images.unsplash.com/photo-1566010503302-2564ae0d47b6',
-  },
 ]
+
+async function handleSearch(): Promise<void> {
+  await weatherStore.searchCity(searchQuery.value)
+}
+
+async function handleSelectLocation(location: GeoLocation): Promise<void> {
+  weatherStore.clearSearch()
+
+  await router.push({
+    name: 'weather-detail',
+    params: {
+      lat: location.lat,
+      lon: location.lon,
+    },
+  })
+}
 </script>
 
 <template>
@@ -55,7 +59,13 @@ const locations: WeatherLocation[] = [
         </RouterLink>
       </header>
 
-      <SearchBar v-model="searchQuery" />
+      <SearchBar v-model="searchQuery" :is-loading="isSearching" @submit="handleSearch" />
+
+      <p v-if="searchError" class="weather-page__error" role="alert">
+        {{ searchError }}
+      </p>
+
+      <SearchResultsList :results="searchResults" @select="handleSelectLocation" />
 
       <WeatherLocationList :locations="locations" />
     </div>
@@ -66,7 +76,6 @@ const locations: WeatherLocation[] = [
 .weather-page {
   min-height: 100vh;
   padding: 24px 16px 48px;
-
   background: var(--color-background);
 
   &__container {
@@ -84,9 +93,7 @@ const locations: WeatherLocation[] = [
 
     h1 {
       margin: 0;
-
       color: var(--color-primary);
-
       font-size: 34px;
       font-weight: 700;
     }
@@ -96,17 +103,25 @@ const locations: WeatherLocation[] = [
     display: grid;
     width: 42px;
     height: 42px;
-
     place-items: center;
 
     border-radius: 50%;
-
     background: #e4e7ec;
 
     text-decoration: none;
   }
 
+  &__error {
+    margin: 10px 0 0;
+    color: #b42318;
+    font-size: 14px;
+  }
+
   :deep(.search-bar) {
+    margin-bottom: 10px;
+  }
+
+  :deep(.search-results) {
     margin-bottom: var(--spacing-lg);
   }
 }
