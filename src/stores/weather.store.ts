@@ -113,6 +113,27 @@ export const useWeatherStore = defineStore('weather', () => {
     saveLocations()
   }
 
+  function setCurrentLocation(lat: number, lon: number): void {
+    const existingIndex = savedLocations.value.findIndex((location) => location.isCurrentLocation)
+
+    const currentLocation: SavedWeatherLocation = {
+      id: 'current-location',
+      name: 'My Location',
+      country: '',
+      lat,
+      lon,
+      isCurrentLocation: true,
+    }
+
+    if (existingIndex >= 0) {
+      savedLocations.value[existingIndex] = currentLocation
+    } else {
+      savedLocations.value.unshift(currentLocation)
+    }
+
+    saveLocations()
+  }
+
   function removeSavedLocation(lat: number, lon: number): void {
     savedLocations.value = savedLocations.value.filter(
       (location) => location.lat !== lat || location.lon !== lon,
@@ -142,5 +163,6 @@ export const useWeatherStore = defineStore('weather', () => {
     loadSavedLocations,
     addSavedLocation,
     removeSavedLocation,
+    setCurrentLocation,
   }
 })

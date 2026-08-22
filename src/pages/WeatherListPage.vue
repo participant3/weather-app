@@ -3,6 +3,7 @@ import { onMounted, ref } from 'vue'
 import { getCurrentWeather } from '@/services/weather.service'
 import { storeToRefs } from 'pinia'
 import { useRouter, RouterLink } from 'vue-router'
+import { useGeolocation } from '@/composables/useGeolocation'
 
 import SearchBar from '@/components/molecules/SearchBar.vue'
 import SearchResultsList from '@/components/organisms/SearchResultsList.vue'
@@ -14,6 +15,9 @@ import type { GeoLocation, WeatherLocation } from '@/types/weather'
 const router = useRouter()
 const weatherStore = useWeatherStore()
 const weatherCards = ref<WeatherLocation[]>([])
+const { getCurrentPosition } = useGeolocation()
+const isLoadingLocation = ref(false)
+const locationError = ref<string | null>(null)
 
 const { searchResults, isSearching, searchError } = storeToRefs(weatherStore)
 
@@ -22,7 +26,32 @@ const searchQuery = ref('')
 onMounted(async () => {
   weatherStore.loadSavedLocations()
   await loadSavedWeatherCards()
+
+  const hasCurrentLocation = weatherStore.savedLocations.some(
+    (location) => location.isCurrentLocation,
+  )
+  if (!hasCurrentLocation) {
+    await loadMyLocation()
+  }
 })
+
+async function loadMyLocation(): Promise<void> {
+  isLoadingLocation.value = true
+  locationError.value = null
+
+  try {
+    const coordinates = await getCurrentPosition()
+
+    weatherStore.setCurrentLocation(coordinates.lat, coordinates.lon)
+
+    await loadSavedWeatherCards()
+  } catch (error) {
+    locationError.value =
+      error instanceof Error ? error.message : 'Unable to retrieve your location.'
+  } finally {
+    isLoadingLocation.value = false
+  }
+}
 
 async function handleSearch(): Promise<void> {
   await weatherStore.searchCity(searchQuery.value)
@@ -79,6 +108,19 @@ async function loadSavedWeatherCards(): Promise<void> {
 
       <SearchBar v-model="searchQuery" :is-loading="isSearching" @submit="handleSearch" />
 
+      <button
+        class="weather-page__location-button"
+        type="button"
+        :disabled="isLoadingLocation"
+        @click="loadMyLocation"
+      >
+        {{ isLoadingLocation ? 'Finding location...' : 'Use My Location' }}
+      </button>
+
+      <p v-if="locationError" class="weather-page__error" role="alert">
+        {{ locationError }}
+      </p>
+
       <p v-if="searchError" class="weather-page__error" role="alert">
         {{ searchError }}
       </p>
@@ -127,6 +169,19 @@ async function loadSavedWeatherCards(): Promise<void> {
     background: #e4e7ec;
 
     text-decoration: none;
+  }
+
+  &__location-button {
+    margin: 10px 0 18px;
+    padding: 10px 14px;
+
+    border: none;
+    border-radius: 10px;
+
+    background: #eef2ff;
+    color: var(--color-primary);
+
+    font-weight: 600;
   }
 
   &__error {
