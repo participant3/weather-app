@@ -1,5 +1,6 @@
 <script setup lang="ts">
-import { ref } from 'vue'
+import { onMounted, ref } from 'vue'
+import { getCurrentWeather } from '@/services/weather.service'
 import { storeToRefs } from 'pinia'
 import { useRouter, RouterLink } from 'vue-router'
 
@@ -12,30 +13,23 @@ import type { GeoLocation, WeatherLocation } from '@/types/weather'
 
 const router = useRouter()
 const weatherStore = useWeatherStore()
+const weatherCards = ref<WeatherLocation[]>([])
 
 const { searchResults, isSearching, searchError } = storeToRefs(weatherStore)
 
 const searchQuery = ref('')
 
-const locations: WeatherLocation[] = [
-  {
-    id: 1,
-    city: 'Bangsar South',
-    subtitle: 'Bangsar South',
-    temperature: 24,
-    high: 30,
-    low: 25,
-    description: 'Moderate Rain',
-    backgroundImage: 'https://images.unsplash.com/photo-1519692933481-e162a57d6721',
-    isCurrentLocation: true,
-  },
-]
+onMounted(async () => {
+  weatherStore.loadSavedLocations()
+  await loadSavedWeatherCards()
+})
 
 async function handleSearch(): Promise<void> {
   await weatherStore.searchCity(searchQuery.value)
 }
 
 async function handleSelectLocation(location: GeoLocation): Promise<void> {
+  weatherStore.addSavedLocation(location)
   weatherStore.clearSearch()
 
   await router.push({
@@ -45,6 +39,30 @@ async function handleSelectLocation(location: GeoLocation): Promise<void> {
       lon: location.lon,
     },
   })
+}
+
+async function loadSavedWeatherCards(): Promise<void> {
+  weatherCards.value = []
+
+  for (const location of weatherStore.savedLocations) {
+    try {
+      const weather = await getCurrentWeather(location.lat, location.lon)
+
+      weatherCards.value.push({
+        id: weather.id,
+        city: weather.name,
+        subtitle: location.state ? `${location.state}, ${location.country}` : location.country,
+        temperature: Math.round(weather.main.temp),
+        high: Math.round(weather.main.temp_max),
+        low: Math.round(weather.main.temp_min),
+        description: weather.weather[0]?.description ?? 'Weather unavailable',
+        backgroundImage: '',
+        isCurrentLocation: location.isCurrentLocation,
+      })
+    } catch (error) {
+      console.error(`Unable to load weather for ${location.name}`, error)
+    }
+  }
 }
 </script>
 
@@ -67,7 +85,7 @@ async function handleSelectLocation(location: GeoLocation): Promise<void> {
 
       <SearchResultsList :results="searchResults" @select="handleSelectLocation" />
 
-      <WeatherLocationList :locations="locations" />
+      <WeatherLocationList :locations="weatherCards" />
     </div>
   </main>
 </template>

@@ -86,6 +86,16 @@ export interface ForecastItem {
   dt_txt: string
 }
 
+export interface SavedWeatherLocation {
+  id: string
+  name: string
+  country: string
+  state?: string
+  lat: number
+  lon: number
+  isCurrentLocation?: boolean
+}
+
 export interface ForecastResponse {
   list: ForecastItem[]
 
