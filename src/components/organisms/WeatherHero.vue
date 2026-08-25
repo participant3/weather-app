@@ -1,11 +1,16 @@
 <script setup lang="ts">
-defineProps<{
+import { getWeatherIconUrl } from '@/utils/weather'
+
+const props = defineProps<{
   city: string
   date: string
   temperature: number
   condition: string
   updatedAt: string
+  weatherIcon: string
 }>()
+
+const weatherIconUrl = getWeatherIconUrl(props.weatherIcon)
 </script>
 
 <template>
@@ -19,7 +24,7 @@ defineProps<{
       <button class="weather-hero__delete" type="button" aria-label="Delete location">🗑</button>
     </div>
 
-    <div class="weather-hero__weather-icon" aria-hidden="true">🌧️</div>
+    <img class="weather-hero__weather-icon" :src="weatherIconUrl" :alt="condition" />
 
     <p class="weather-hero__temperature">{{ temperature }}°</p>
 
@@ -68,8 +73,14 @@ defineProps<{
   }
 
   &__weather-icon {
-    margin-top: 24px;
-    font-size: 72px;
+    width: 130px;
+    height: 130px;
+
+    margin: 18px auto 0;
+
+    display: block;
+
+    object-fit: contain;
   }
 
   &__temperature {

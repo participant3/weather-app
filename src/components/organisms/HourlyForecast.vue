@@ -14,7 +14,7 @@ defineProps<{
 
 <template>
   <section class="hourly">
-    <h2>Hourly Forecast</h2>
+    <h2>3 - Hour Forecast</h2>
 
     <div class="hourly__list">
       <HourlyForecastCard

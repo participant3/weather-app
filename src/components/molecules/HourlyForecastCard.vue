@@ -1,16 +1,24 @@
 <script setup lang="ts">
-defineProps<{
+import { getWeatherIconUrl } from '@/utils/weather'
+
+const props = defineProps<{
   time: string
   temperature: number
   icon: string
 }>()
+
+const iconUrl = getWeatherIconUrl(props.icon)
 </script>
 
 <template>
   <article class="hour-card">
+    <img class="hour-card__icon" :src="iconUrl" alt="" aria-hidden="true" />
+
     <p class="hour-card__temp">{{ temperature }}°</p>
-    <div class="hour-card__icon" aria-hidden="true">{{ icon }}</div>
-    <p class="hour-card__time">{{ time }}</p>
+
+    <p class="hour-card__time">
+      {{ time }}
+    </p>
   </article>
 </template>
 
@@ -20,7 +28,7 @@ defineProps<{
   padding: 16px 12px;
   text-align: center;
   border-radius: 18px;
-  background: #edf3ff;
+  background: #dbe7ff;
 
   &__temp {
     margin: 0;
@@ -29,8 +37,13 @@ defineProps<{
   }
 
   &__icon {
-    margin: 14px 0;
-    font-size: 34px;
+    width: 68px;
+    height: 68px;
+    margin: 8px auto;
+
+    display: block;
+
+    object-fit: contain;
   }
 
   &__time {

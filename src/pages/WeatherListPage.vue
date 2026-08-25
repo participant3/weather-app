@@ -80,11 +80,16 @@ async function loadSavedWeatherCards(): Promise<void> {
       weatherCards.value.push({
         id: weather.id,
         city: weather.name,
-        subtitle: location.state ? `${location.state}, ${location.country}` : location.country,
+        subtitle: location.isCurrentLocation
+          ? 'My Location'
+          : location.state
+            ? `${location.state}, ${location.country}`
+            : location.country,
         temperature: Math.round(weather.main.temp),
         high: Math.round(weather.main.temp_max),
         low: Math.round(weather.main.temp_min),
         description: weather.weather[0]?.description ?? 'Weather unavailable',
+        weatherIcon: weather.weather[0]?.icon ?? '03d',
         backgroundImage: '',
         isCurrentLocation: location.isCurrentLocation,
       })

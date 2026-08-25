@@ -6,6 +6,7 @@ export interface WeatherLocation {
   high: number
   low: number
   description: string
+  weatherIcon: string
   backgroundImage: string
   isCurrentLocation?: boolean
 }

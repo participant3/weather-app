@@ -30,16 +30,21 @@ const hourlyForecast = computed(() => {
     return []
   }
 
-  return forecast.value.list.slice(0, 4).map((item) => {
-    const time = new Date(item.dt * 1000).toLocaleTimeString([], {
+  const timezoneOffset = forecast.value.city.timezone
+
+  return forecast.value.list.slice(0, 6).map((item) => {
+    const localDate = new Date((item.dt + timezoneOffset) * 1000)
+
+    const time = localDate.toLocaleTimeString('en-US', {
       hour: 'numeric',
       minute: '2-digit',
+      timeZone: 'UTC',
     })
 
     return {
       time,
       temperature: Math.round(item.main.temp),
-      icon: item.weather[0]?.main === 'Rain' ? '🌧️' : '☁️',
+      icon: item.weather[0]?.icon ?? '03d',
     }
   })
 })
@@ -49,27 +54,34 @@ const dailyForecast = computed(() => {
     return []
   }
 
+  const timezoneOffset = forecast.value.city.timezone
+
   const grouped = new Map<
     string,
     {
       day: string
       icon: string
+      condition: string
       low: number
       high: number
     }
   >()
 
   for (const item of forecast.value.list) {
-    const date = new Date(item.dt * 1000)
+    const localDate = new Date((item.dt + timezoneOffset) * 1000)
 
-    const key = date.toDateString()
+    const key = localDate.toISOString().slice(0, 10)
+
+    const day = localDate.toLocaleDateString('en-US', {
+      weekday: 'long',
+      timeZone: 'UTC',
+    })
 
     if (!grouped.has(key)) {
       grouped.set(key, {
-        day: date.toLocaleDateString([], {
-          weekday: 'long',
-        }),
-        icon: item.weather[0]?.main === 'Rain' ? '🌧️' : '☁️',
+        day,
+        icon: item.weather[0]?.icon ?? '03d',
+        condition: item.weather[0]?.description ?? 'Unknown',
         low: Math.round(item.main.temp_min),
         high: Math.round(item.main.temp_max),
       })
@@ -105,7 +117,7 @@ const dailyForecast = computed(() => {
         <WeatherHero
           :city="currentWeather.name"
           :date="
-            new Date(currentWeather.dt * 1000).toLocaleDateString([], {
+            new Date(currentWeather.dt * 1000).toLocaleDateString('en-US', {
               weekday: 'long',
               day: 'numeric',
               month: 'long',
@@ -114,11 +126,12 @@ const dailyForecast = computed(() => {
           :temperature="Math.round(currentWeather.main.temp)"
           :condition="currentWeather.weather[0]?.description ?? 'Unknown'"
           :updated-at="
-            new Date(currentWeather.dt * 1000).toLocaleTimeString([], {
+            new Date(currentWeather.dt * 1000).toLocaleTimeString('en-US', {
               hour: 'numeric',
               minute: '2-digit',
             })
           "
+          :weather-icon="currentWeather.weather[0]?.icon ?? '03d'"
         />
 
         <div class="detail-page__content">
@@ -157,7 +170,12 @@ const dailyForecast = computed(() => {
     color: white;
 
     font-size: 28px;
+    line-height: 1;
     text-decoration: none;
+
+    &:hover {
+      opacity: 0.8;
+    }
   }
 
   &__content {
@@ -170,6 +188,7 @@ const dailyForecast = computed(() => {
   &__status,
   &__error {
     padding: 100px 20px 40px;
+
     text-align: center;
   }
 
