@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed, onMounted } from 'vue'
 import { storeToRefs } from 'pinia'
-import { useRoute, RouterLink } from 'vue-router'
+import { RouterLink, useRoute, useRouter } from 'vue-router'
 
 import WeatherHero from '@/components/organisms/WeatherHero.vue'
 import HourlyForecast from '@/components/organisms/HourlyForecast.vue'
@@ -10,6 +10,8 @@ import DailyForecast from '@/components/organisms/DailyForecast.vue'
 import { useWeatherStore } from '@/stores/weather.store'
 
 const route = useRoute()
+const router = useRouter()
+
 const weatherStore = useWeatherStore()
 
 const { currentWeather, forecast, isLoadingWeather, weatherError } = storeToRefs(weatherStore)
@@ -24,6 +26,12 @@ onMounted(async () => {
 
   await weatherStore.loadWeather(latitude.value, longitude.value)
 })
+
+async function handleDeleteLocation(): Promise<void> {
+  weatherStore.removeSavedLocation(latitude.value, longitude.value)
+
+  await router.push('/')
+}
 
 const hourlyForecast = computed(() => {
   if (!forecast.value) {
@@ -107,6 +115,18 @@ const dailyForecast = computed(() => {
         ←
       </RouterLink>
 
+      <button
+        class="detail-page__delete"
+        type="button"
+        aria-label="Delete location"
+        title="Delete location"
+        @click="handleDeleteLocation"
+      >
+        <svg viewBox="0 0 24 24" aria-hidden="true">
+          <path d="M3 6h18M8 6V4h8v2M19 6l-1 14H6L5 6M10 10v6M14 10v6" />
+        </svg>
+      </button>
+
       <p v-if="isLoadingWeather" class="detail-page__status" role="status">Loading weather...</p>
 
       <p v-else-if="weatherError" class="detail-page__error" role="alert">
@@ -167,14 +187,85 @@ const dailyForecast = computed(() => {
     left: 22px;
     z-index: 10;
 
+    display: grid;
+    width: 44px;
+    height: 44px;
+
+    place-items: center;
+
     color: white;
+
+    border-radius: 50%;
 
     font-size: 28px;
     line-height: 1;
     text-decoration: none;
 
+    transition:
+      background 0.2s ease,
+      transform 0.2s ease;
+
     &:hover {
-      opacity: 0.8;
+      background: rgba(255, 255, 255, 0.15);
+    }
+
+    &:active {
+      transform: scale(0.94);
+    }
+
+    &:focus-visible {
+      outline: 3px solid rgba(255, 255, 255, 0.5);
+      outline-offset: 2px;
+    }
+  }
+
+  &__delete {
+    position: absolute;
+    top: 22px;
+    right: 22px;
+    z-index: 10;
+
+    display: grid;
+    width: 44px;
+    height: 44px;
+    padding: 8px;
+
+    place-items: center;
+
+    border: none;
+    border-radius: 50%;
+
+    background: transparent;
+    color: white;
+
+    cursor: pointer;
+
+    transition:
+      background 0.2s ease,
+      transform 0.2s ease;
+
+    svg {
+      width: 25px;
+      height: 25px;
+
+      fill: none;
+      stroke: currentColor;
+      stroke-width: 1.8;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+    }
+
+    &:hover {
+      background: rgba(255, 255, 255, 0.15);
+    }
+
+    &:active {
+      transform: scale(0.94);
+    }
+
+    &:focus-visible {
+      outline: 3px solid rgba(255, 255, 255, 0.5);
+      outline-offset: 2px;
     }
   }
 
