@@ -8,6 +8,8 @@ export interface WeatherLocation {
   description: string
   weatherIcon: string
   backgroundImage: string
+  lat: number
+  lon: number
   isCurrentLocation?: boolean
 }
 

@@ -91,6 +91,8 @@ async function loadSavedWeatherCards(): Promise<void> {
         description: weather.weather[0]?.description ?? 'Weather unavailable',
         weatherIcon: weather.weather[0]?.icon ?? '03d',
         backgroundImage: '',
+        lat: location.lat,
+        lon: location.lon,
         isCurrentLocation: location.isCurrentLocation,
       })
     } catch (error) {

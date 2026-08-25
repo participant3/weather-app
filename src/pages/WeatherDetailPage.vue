@@ -11,12 +11,12 @@ import { useWeatherStore } from '@/stores/weather.store'
 
 const route = useRoute()
 const router = useRouter()
-
 const weatherStore = useWeatherStore()
 
 const { currentWeather, forecast, isLoadingWeather, weatherError } = storeToRefs(weatherStore)
 
 const latitude = computed(() => Number(route.params.lat))
+
 const longitude = computed(() => Number(route.params.lon))
 
 onMounted(async () => {
@@ -26,6 +26,10 @@ onMounted(async () => {
 
   await weatherStore.loadWeather(latitude.value, longitude.value)
 })
+
+async function handleRefreshWeather(): Promise<void> {
+  await weatherStore.loadWeather(latitude.value, longitude.value)
+}
 
 async function handleDeleteLocation(): Promise<void> {
   weatherStore.removeSavedLocation(latitude.value, longitude.value)
@@ -106,6 +110,35 @@ const dailyForecast = computed(() => {
 
   return Array.from(grouped.values()).slice(0, 5)
 })
+
+const heroDate = computed(() => {
+  if (!currentWeather.value) {
+    return ''
+  }
+
+  const localDate = new Date((currentWeather.value.dt + currentWeather.value.timezone) * 1000)
+
+  return localDate.toLocaleDateString('en-US', {
+    weekday: 'long',
+    month: 'long',
+    day: 'numeric',
+    timeZone: 'UTC',
+  })
+})
+
+const heroUpdatedTime = computed(() => {
+  if (!currentWeather.value) {
+    return ''
+  }
+
+  const localDate = new Date((currentWeather.value.dt + currentWeather.value.timezone) * 1000)
+
+  return localDate.toLocaleTimeString('en-US', {
+    hour: 'numeric',
+    minute: '2-digit',
+    timeZone: 'UTC',
+  })
+})
 </script>
 
 <template>
@@ -123,7 +156,15 @@ const dailyForecast = computed(() => {
         @click="handleDeleteLocation"
       >
         <svg viewBox="0 0 24 24" aria-hidden="true">
-          <path d="M3 6h18M8 6V4h8v2M19 6l-1 14H6L5 6M10 10v6M14 10v6" />
+          <path
+            d="
+              M3 6h18
+              M8 6V4h8v2
+              M19 6l-1 14H6L5 6
+              M10 10v6
+              M14 10v6
+            "
+          />
         </svg>
       </button>
 
@@ -136,22 +177,12 @@ const dailyForecast = computed(() => {
       <template v-else-if="currentWeather">
         <WeatherHero
           :city="currentWeather.name"
-          :date="
-            new Date(currentWeather.dt * 1000).toLocaleDateString('en-US', {
-              weekday: 'long',
-              day: 'numeric',
-              month: 'long',
-            })
-          "
+          :date="heroDate"
           :temperature="Math.round(currentWeather.main.temp)"
           :condition="currentWeather.weather[0]?.description ?? 'Unknown'"
-          :updated-at="
-            new Date(currentWeather.dt * 1000).toLocaleTimeString('en-US', {
-              hour: 'numeric',
-              minute: '2-digit',
-            })
-          "
+          :updated-at="heroUpdatedTime"
           :weather-icon="currentWeather.weather[0]?.icon ?? '03d'"
+          @refresh="handleRefreshWeather"
         />
 
         <div class="detail-page__content">
@@ -188,17 +219,19 @@ const dailyForecast = computed(() => {
     z-index: 10;
 
     display: grid;
+
     width: 44px;
     height: 44px;
 
     place-items: center;
 
-    color: white;
-
     border-radius: 50%;
+
+    color: white;
 
     font-size: 28px;
     line-height: 1;
+
     text-decoration: none;
 
     transition:
@@ -215,6 +248,7 @@ const dailyForecast = computed(() => {
 
     &:focus-visible {
       outline: 3px solid rgba(255, 255, 255, 0.5);
+
       outline-offset: 2px;
     }
   }
@@ -226,8 +260,10 @@ const dailyForecast = computed(() => {
     z-index: 10;
 
     display: grid;
+
     width: 44px;
     height: 44px;
+
     padding: 8px;
 
     place-items: center;
@@ -250,6 +286,7 @@ const dailyForecast = computed(() => {
 
       fill: none;
       stroke: currentColor;
+
       stroke-width: 1.8;
       stroke-linecap: round;
       stroke-linejoin: round;
@@ -265,6 +302,7 @@ const dailyForecast = computed(() => {
 
     &:focus-visible {
       outline: 3px solid rgba(255, 255, 255, 0.5);
+
       outline-offset: 2px;
     }
   }

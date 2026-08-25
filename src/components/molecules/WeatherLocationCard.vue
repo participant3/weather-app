@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import { RouterLink } from 'vue-router'
+
 import type { WeatherLocation } from '@/types/weather'
 import { getWeatherBackground, getWeatherIconUrl } from '@/utils/weather'
 
@@ -12,7 +14,17 @@ const weatherBackground = getWeatherBackground(props.location.weatherIcon)
 </script>
 
 <template>
-  <article class="weather-card" :class="`weather-card--${weatherBackground}`">
+  <RouterLink
+    class="weather-card"
+    :class="`weather-card--${weatherBackground}`"
+    :to="{
+      name: 'weather-detail',
+      params: {
+        lat: location.lat,
+        lon: location.lon,
+      },
+    }"
+  >
     <div class="weather-card__top">
       <div class="weather-card__location">
         <h2 class="weather-card__city">
@@ -38,7 +50,7 @@ const weatherBackground = getWeatherBackground(props.location.weatherIcon)
 
       <p class="weather-card__range">H:{{ location.high }}° L:{{ location.low }}°</p>
     </div>
-  </article>
+  </RouterLink>
 </template>
 
 <style scoped lang="scss">
@@ -51,8 +63,31 @@ const weatherBackground = getWeatherBackground(props.location.weatherIcon)
   justify-content: space-between;
 
   border-radius: var(--radius-lg);
+
   color: white;
+  text-decoration: none;
+
   overflow: hidden;
+  cursor: pointer;
+
+  transition:
+    transform 0.2s ease,
+    box-shadow 0.2s ease;
+
+  &:hover {
+    transform: translateY(-2px);
+
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.12);
+  }
+
+  &:active {
+    transform: translateY(0);
+  }
+
+  &:focus-visible {
+    outline: 3px solid rgba(79, 172, 254, 0.4);
+    outline-offset: 3px;
+  }
 
   &--clear {
     background: linear-gradient(135deg, #4facfe, #00c6ff);
@@ -82,6 +117,7 @@ const weatherBackground = getWeatherBackground(props.location.weatherIcon)
     display: flex;
     align-items: flex-start;
     justify-content: space-between;
+
     gap: 20px;
   }
 
@@ -116,12 +152,14 @@ const weatherBackground = getWeatherBackground(props.location.weatherIcon)
     display: flex;
     align-items: flex-end;
     justify-content: space-between;
+
     gap: 20px;
   }
 
   &__condition {
     display: flex;
     align-items: center;
+
     gap: 6px;
   }
 
