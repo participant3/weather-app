@@ -31,6 +31,47 @@ async function handleRefreshWeather(): Promise<void> {
   await weatherStore.loadWeather(latitude.value, longitude.value)
 }
 
+async function handleShareWeather(): Promise<void> {
+  if (!currentWeather.value) {
+    return
+  }
+
+  const city = currentWeather.value.name
+  const temperature = Math.round(currentWeather.value.main.temp)
+
+  const condition = currentWeather.value.weather[0]?.description ?? 'Unknown'
+
+  const shareText = `Weather in ${city}: ${temperature}°C, ${condition}.`
+
+  try {
+    // Use native Web Share API when supported
+    if (navigator.share) {
+      await navigator.share({
+        title: `Weather in ${city}`,
+        text: shareText,
+      })
+
+      return
+    }
+
+    // Fallback for browsers without Web Share
+    if (navigator.clipboard) {
+      await navigator.clipboard.writeText(shareText)
+
+      alert('Weather summary copied to clipboard!')
+      return
+    }
+
+    alert('Sharing is not supported on this browser.')
+  } catch (error) {
+    if (error instanceof DOMException && error.name === 'AbortError') {
+      return
+    }
+
+    console.error('Unable to share weather:', error)
+  }
+}
+
 async function handleDeleteLocation(): Promise<void> {
   weatherStore.removeSavedLocation(latitude.value, longitude.value)
 
@@ -149,6 +190,23 @@ const heroUpdatedTime = computed(() => {
       </RouterLink>
 
       <button
+        class="detail-page__share"
+        type="button"
+        aria-label="Share weather"
+        title="Share weather"
+        @click="handleShareWeather"
+      >
+        <svg viewBox="0 0 24 24" aria-hidden="true">
+          <circle cx="18" cy="5" r="3" />
+          <circle cx="6" cy="12" r="3" />
+          <circle cx="18" cy="19" r="3" />
+
+          <path d="M8.6 10.5l6.8-4" />
+          <path d="M8.6 13.5l6.8 4" />
+        </svg>
+      </button>
+
+      <button
         class="detail-page__delete"
         type="button"
         aria-label="Delete location"
@@ -237,6 +295,60 @@ const heroUpdatedTime = computed(() => {
     transition:
       background 0.2s ease,
       transform 0.2s ease;
+
+    &:hover {
+      background: rgba(255, 255, 255, 0.15);
+    }
+
+    &:active {
+      transform: scale(0.94);
+    }
+
+    &:focus-visible {
+      outline: 3px solid rgba(255, 255, 255, 0.5);
+
+      outline-offset: 2px;
+    }
+  }
+
+  &__share {
+    position: absolute;
+    top: 22px;
+    right: 72px;
+    z-index: 10;
+
+    display: grid;
+
+    width: 44px;
+    height: 44px;
+
+    padding: 9px;
+
+    place-items: center;
+
+    border: none;
+    border-radius: 50%;
+
+    background: transparent;
+    color: white;
+
+    cursor: pointer;
+
+    transition:
+      background 0.2s ease,
+      transform 0.2s ease;
+
+    svg {
+      width: 23px;
+      height: 23px;
+
+      fill: none;
+      stroke: currentColor;
+
+      stroke-width: 1.8;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+    }
 
     &:hover {
       background: rgba(255, 255, 255, 0.15);
