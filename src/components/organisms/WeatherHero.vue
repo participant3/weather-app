@@ -1,8 +1,21 @@
+<!--
+  WeatherHero.vue
+
+  Purpose:
+  Displays the main current-weather summary at the top of the weather
+  detail page. It shows the city, local date, current temperature,
+  weather condition, weather icon, last updated time, and refresh control.
+  The background changes dynamically based on the current weather
+  condition and whether the location is experiencing day or night.
+-->
+
 <script setup lang="ts">
 import { computed } from 'vue'
 
 import { getWeatherBackground, getWeatherIconUrl } from '@/utils/weather'
 
+// Receives the weather information required to display
+// the main weather summary for the selected location.
 const props = defineProps<{
   city: string
   date: string
@@ -12,17 +25,29 @@ const props = defineProps<{
   weatherIcon: string
 }>()
 
+// Emits a refresh event when the user selects
+// the refresh button on the weather hero.
 const emit = defineEmits<{
   refresh: []
 }>()
 
+// Determines the correct background style based on
+// the current OpenWeather icon code.
 const weatherBackground = computed(() => getWeatherBackground(props.weatherIcon))
 
+// Converts the OpenWeather icon code into the image URL
+// used to display the current weather icon.
 const weatherIconUrl = computed(() => getWeatherIconUrl(props.weatherIcon))
 </script>
 
 <template>
+  <!--
+    Main weather summary section.
+    The dynamic class controls the background based on
+    the weather condition and day/night state.
+  -->
   <section class="weather-hero" :class="`weather-hero--${weatherBackground}`">
+    <!-- Displays the selected city and its local date. -->
     <div class="weather-hero__heading">
       <h1 class="weather-hero__city">
         {{ city }}
@@ -33,17 +58,22 @@ const weatherIconUrl = computed(() => getWeatherIconUrl(props.weatherIcon))
       </p>
     </div>
 
+    <!-- Displays the current weather icon returned by OpenWeather. -->
     <img class="weather-hero__weather-icon" :src="weatherIconUrl" :alt="condition" />
 
+    <!-- Displays the current temperature. -->
     <p class="weather-hero__temperature">{{ temperature }}°</p>
 
+    <!-- Displays the current weather description. -->
     <p class="weather-hero__condition">
       {{ condition }}
     </p>
 
+    <!-- Shows when the weather information was last updated. -->
     <div class="weather-hero__updated">
       <span> Last updated {{ updatedAt }} </span>
 
+      <!-- Allows the user to request refreshed weather data. -->
       <button
         class="weather-hero__refresh"
         type="button"
@@ -51,6 +81,7 @@ const weatherIconUrl = computed(() => getWeatherIconUrl(props.weatherIcon))
         title="Refresh weather"
         @click="emit('refresh')"
       >
+        <!-- Refresh icon -->
         <svg viewBox="0 0 24 24" aria-hidden="true">
           <path d="M20 6v5h-5" />
 
@@ -67,6 +98,7 @@ const weatherIconUrl = computed(() => getWeatherIconUrl(props.weatherIcon))
 
 <style scoped lang="scss">
 .weather-hero {
+  // Defines the overall layout of the current-weather hero section.
   min-height: 430px;
   padding: 78px 24px 32px;
 
@@ -79,6 +111,7 @@ const weatherIconUrl = computed(() => getWeatherIconUrl(props.weatherIcon))
   color: white;
   text-align: center;
 
+  // Smoothly transitions between dynamic weather backgrounds.
   transition: background 0.3s ease;
 
   // Clear daytime weather
@@ -116,12 +149,14 @@ const weatherIconUrl = computed(() => getWeatherIconUrl(props.weatherIcon))
     background: linear-gradient(180deg, #101a35 0%, #263b63 100%);
   }
 
+  // Centers the city name and date.
   &__heading {
     width: 100%;
 
     text-align: center;
   }
 
+  // Styles the selected city name.
   &__city {
     margin: 0;
 
@@ -130,6 +165,7 @@ const weatherIconUrl = computed(() => getWeatherIconUrl(props.weatherIcon))
     line-height: 1.2;
   }
 
+  // Styles the local date displayed below the city.
   &__date {
     margin: 7px 0 0;
 
@@ -138,6 +174,7 @@ const weatherIconUrl = computed(() => getWeatherIconUrl(props.weatherIcon))
     opacity: 0.85;
   }
 
+  // Controls the size and positioning of the current weather icon.
   &__weather-icon {
     display: block;
 
@@ -149,6 +186,7 @@ const weatherIconUrl = computed(() => getWeatherIconUrl(props.weatherIcon))
     object-fit: contain;
   }
 
+  // Styles the large current temperature.
   &__temperature {
     margin: -4px 0 0;
 
@@ -157,6 +195,7 @@ const weatherIconUrl = computed(() => getWeatherIconUrl(props.weatherIcon))
     line-height: 1;
   }
 
+  // Styles the current weather description.
   &__condition {
     margin: 10px 0 0;
 
@@ -166,6 +205,7 @@ const weatherIconUrl = computed(() => getWeatherIconUrl(props.weatherIcon))
     text-transform: capitalize;
   }
 
+  // Arranges the last-updated time and refresh button.
   &__updated {
     margin-top: 28px;
 
@@ -179,6 +219,7 @@ const weatherIconUrl = computed(() => getWeatherIconUrl(props.weatherIcon))
     opacity: 0.95;
   }
 
+  // Styles the refresh icon button.
   &__refresh {
     display: grid;
 
@@ -200,6 +241,7 @@ const weatherIconUrl = computed(() => getWeatherIconUrl(props.weatherIcon))
       background 0.2s ease,
       transform 0.2s ease;
 
+    // Styles the refresh SVG icon.
     svg {
       width: 21px;
       height: 21px;
@@ -211,14 +253,17 @@ const weatherIconUrl = computed(() => getWeatherIconUrl(props.weatherIcon))
       stroke-linejoin: round;
     }
 
+    // Provides visual feedback when hovering over the refresh button.
     &:hover {
       background: rgba(255, 255, 255, 0.24);
     }
 
+    // Provides feedback when the refresh button is pressed.
     &:active {
       transform: rotate(30deg) scale(0.94);
     }
 
+    // Makes keyboard focus visible for accessibility.
     &:focus-visible {
       outline: 3px solid rgba(255, 255, 255, 0.5);
       outline-offset: 2px;
@@ -226,6 +271,7 @@ const weatherIconUrl = computed(() => getWeatherIconUrl(props.weatherIcon))
   }
 }
 
+// Adjusts the weather hero for smaller mobile screens.
 @media (max-width: 480px) {
   .weather-hero {
     min-height: 400px;
