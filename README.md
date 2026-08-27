@@ -104,22 +104,17 @@ src/
 ```
 
 Test files are also included for components such as the profile form and weather location card.
-
 ---
 
 ## Atomic Design Structure
 
-### Atoms
-
-Atoms are the smallest reusable UI elements in the application.
+### Atoms:
 
 Example:
 
 - `BaseInput.vue` - provides a reusable input component used by other interface components.
 
 ### Molecules
-
-Molecules combine smaller elements into reusable interface components.
 
 Examples include:
 
@@ -143,8 +138,6 @@ Examples include:
 
 ### Pages
 
-Pages combine components to create complete application screens.
-
 The main pages are:
 
 - `WeatherListPage.vue` - main weather dashboard and location search
@@ -156,12 +149,7 @@ The main pages are:
 ## State Management
 
 Pinia is used to manage shared weather application state.
-
-The main weather store is located at:
-
-```text
-src/stores/weather.store.ts
-```
+The main weather store is located at: src/stores/weather.store.ts
 
 The weather store manages:
 
@@ -174,7 +162,6 @@ The weather store manages:
 - Default location management
 
 Using Pinia keeps shared application state separate from presentation components and provides a central location for weather-related application logic.
-
 ---
 
 ## Default Location
@@ -193,18 +180,12 @@ The default location uses predefined latitude and longitude coordinates rather t
 This provides users with an initial weather card immediately while avoiding issues caused by unavailable or denied browser location permissions.
 
 Other locations can still be searched for and added normally.
-
 ---
 
 ## API Integration
 
 Weather information is retrieved using the OpenWeather API.
-
-API communication is separated from the Vue components and handled through:
-
-```text
-src/services/weather.service.ts
-```
+API communication is separated from the Vue components and handled through: src/services/weather.service.ts
 
 The service is responsible for:
 
@@ -221,35 +202,30 @@ Keeping API communication in a dedicated service prevents networking logic from 
 ## Weather Data Flow
 
 Weather information moves through the application using the following general flow:
-
-```text
 User Interface
-      ↓
+↓
 Vue Component
-      ↓
+↓
 Pinia Weather Store
-      ↓
+↓
 Weather Service
-      ↓
+↓
 OpenWeather API
-      ↓
+↓
 JSON Response
-      ↓
+↓
 Pinia Store
-      ↓
+↓
 Vue Components
-      ↓
+↓
 Updated User Interface
-```
 
 For example, when a user selects a location, its latitude and longitude are used to retrieve current weather and forecast information from OpenWeather.
-
 ---
 
 ## Dynamic Weather Backgrounds
 
 The application changes weather backgrounds according to OpenWeather weather icon codes.
-
 Background categories include:
 
 - Clear
@@ -261,22 +237,13 @@ Background categories include:
 - Night
 
 OpenWeather icon codes ending in `n` indicate nighttime conditions.
-
 For example:
-
-```text
 01d → Clear daytime background
 01n → Night background
 10d → Rain background
 10n → Night background
-```
 
-The background logic is contained in:
-
-```text
-src/utils/weather.ts
-```
-
+The background logic is contained in: src/utils/weather.ts
 This allows the same logic to be reused by multiple components, including weather location cards and the detailed weather display.
 
 ---
@@ -284,7 +251,6 @@ This allows the same logic to be reused by multiple components, including weathe
 ## Local Storage
 
 Browser `localStorage` is used to persist user information between sessions.
-
 The application stores:
 
 - Saved weather locations
@@ -309,34 +275,16 @@ The Weather Detail page uses the Web Share API to allow users to share current w
 
 When supported by the user's browser or device, selecting the share button opens the native sharing interface.
 
-A weather summary can contain information such as:
+A weather summary can contain information such as: Weather in Milan: 25°C, clear sky.
 
-```text
-Weather in Milan: 25°C, clear sky.
-```
-
-Before using native sharing, the application checks whether:
-
-```ts
-navigator.share
-```
-
-is available.
-
+Before using native sharing, the application checks whether: navigator.share is available.
 This is necessary because Web Share API support varies between browsers, devices, and operating systems.
 
 ### Copy to Clipboard
 
 The application also implements a copy-to-clipboard feature using the browser Clipboard API.
-
 This acts as a fallback when the Web Share API is unavailable.
-
-If native sharing is not supported, the application uses:
-
-```ts
-navigator.clipboard.writeText()
-```
-
+If native sharing is not supported, the application uses: navigator.clipboard.writeText()
 to copy the generated weather summary to the user's clipboard.
 
 The user receives confirmation that the weather information has been copied and can then paste it into another application, such as:
@@ -348,7 +296,6 @@ The user receives confirmation that the weather information has been copied and 
 - Social platforms
 
 This provides progressive enhancement: devices that support native sharing receive the full Web Share experience, while unsupported browsers can still share the information using the clipboard.
-
 ---
 
 ## User Profile
@@ -371,7 +318,6 @@ Profile information is stored in browser localStorage so that it remains availab
 ## Profile Picture Upload
 
 Users can select a custom profile picture from their device.
-
 The upload functionality:
 
 - Accepts image files
@@ -382,13 +328,11 @@ The upload functionality:
 - Stores the image locally with the user's profile information
 
 The uploaded profile picture is processed using the browser `FileReader` API.
-
 ---
 
 ## Form Validation
 
 The profile form validates user input before saving changes.
-
 Validation includes:
 
 - Full name is required
@@ -405,75 +349,20 @@ Invalid information displays an appropriate error message and prevents the profi
 ## Routing
 
 Vue Router is used to navigate between application pages.
-
 The main routes are:
-
-```text
-/                       → Weather List Page
-/weather/:lat/:lon      → Weather Detail Page
-/profile                → Profile Page
-```
+/ → Weather List Page
+/weather/:lat/:lon → Weather Detail Page
+/profile → Profile Page
 
 The weather detail route uses dynamic latitude and longitude parameters.
-
-For example:
-
-```text
-/weather/45.4642/9.19
-```
-
+For example: /weather/45.4642/9.19
 These coordinates allow the Weather Detail page to determine which location's weather information should be retrieved.
-
----
-
-## Environment Variables
-
-The OpenWeather API key is stored using an environment variable and is not committed to Git.
-
-Create a `.env` file in the project root:
-
-```text
-VITE_OPENWEATHER_API_KEY=your_api_key_here
-```
-
-An example configuration should be provided in:
-
-```text
-.env.example
-```
-
-The actual `.env` file should remain excluded from version control to prevent the API key from being committed to the repository.
-
----
-
-## Project Setup
-
-Install the project dependencies:
-
-```sh
-npm install
-```
-
-Create a `.env` file in the project root and add your OpenWeather API key:
-
-```text
-VITE_OPENWEATHER_API_KEY=your_api_key_here
-```
-
-Start the development server:
-
-```sh
-npm run dev
-```
-
-Vite will display the local development URL that can be opened in a browser.
 
 ---
 
 ## Type Checking
 
 TypeScript is used throughout the application to improve type safety.
-
 Run TypeScript type checking with:
 
 ```sh
@@ -481,13 +370,11 @@ npm run type-check
 ```
 
 This helps identify problems such as incorrect property types, invalid component props, and incompatible data structures.
-
 ---
 
 ## Linting
 
 ESLint is used to help maintain consistent code quality.
-
 Run ESLint with:
 
 ```sh
@@ -499,7 +386,6 @@ npm run lint
 ## Unit Testing
 
 Unit and component tests are implemented using Vitest and Vue Test Utils.
-
 Tests currently cover:
 
 - Weather utility functions
@@ -515,8 +401,7 @@ Tests currently cover:
 - Weather location card rendering
 - Weather location navigation
 - Weather icon rendering
-
-Run the tests with:
+  Run the tests with:
 
 ```sh
 npm run test:unit
@@ -524,55 +409,9 @@ npm run test:unit
 
 ---
 
-## Production Build
+## Run Code
 
-Create an optimized production build with:
-
-```sh
-npm run build
-```
-
-This verifies that the application can be compiled successfully for production.
-
-The optimized production files are generated in the:
-
-```text
-dist/
-```
-
-directory.
-
----
-
-## Accessibility
-
-Accessibility considerations include:
-
-- Semantic HTML elements
-- Form labels
-- ARIA labels for icon buttons
-- Keyboard-accessible controls
-- Visible focus states
-- Alternative text for meaningful weather images
-- Error messages for invalid form input
-- Accessible navigation controls
-
-These features help make the application more usable for users who navigate using keyboards or assistive technologies.
-
----
-
-## Responsive Design
-
-The application is designed to work across different screen sizes, including:
-
-- Mobile devices
-- Tablets
-- Desktop screens
-
-Responsive SCSS and media queries are used to adjust layouts and component sizing.
-
-Weather cards, forecasts, profile information, forms, and navigation controls remain usable across different viewport sizes.
-
+Web application can be run with the following code: npm run dev
 ---
 
 ## Error Handling
