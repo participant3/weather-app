@@ -28,7 +28,7 @@ const weatherBackground = getWeatherBackground(props.location.weatherIcon)
     <div class="weather-card__top">
       <div class="weather-card__location">
         <h2 class="weather-card__city">
-          {{ location.isCurrentLocation ? 'My Location' : location.city }}
+          {{ location.isDefaultLocation ? 'My Location' : location.city }}
         </h2>
 
         <p class="weather-card__subtitle">
@@ -90,7 +90,7 @@ const weatherBackground = getWeatherBackground(props.location.weatherIcon)
   }
 
   &--clear {
-    background: linear-gradient(135deg, #4facfe, #00c6ff);
+    background: linear-gradient(135deg, #4a90c2, #78b6dc);
   }
 
   &--cloudy {

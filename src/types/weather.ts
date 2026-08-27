@@ -10,7 +10,7 @@ export interface WeatherLocation {
   backgroundImage: string
   lat: number
   lon: number
-  isCurrentLocation?: boolean
+  isDefaultLocation?: boolean
 }
 
 export interface GeoLocation {
@@ -96,7 +96,7 @@ export interface SavedWeatherLocation {
   state?: string
   lat: number
   lon: number
-  isCurrentLocation?: boolean
+  isDefaultLocation?: boolean
 }
 
 export interface ForecastResponse {
