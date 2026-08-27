@@ -93,6 +93,10 @@ const weatherBackground = getWeatherBackground(props.location.weatherIcon)
     background: linear-gradient(135deg, #4a90c2, #78b6dc);
   }
 
+  &--night {
+    background: linear-gradient(135deg, #172554, #334e7d);
+  }
+
   &--cloudy {
     background: linear-gradient(135deg, #667db6, #8796b0);
   }

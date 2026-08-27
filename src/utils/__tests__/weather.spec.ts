@@ -6,7 +6,15 @@ describe('weather utilities', () => {
   describe('getWeatherBackground', () => {
     it('returns clear for clear weather icons', () => {
       expect(getWeatherBackground('01d')).toBe('clear')
-      expect(getWeatherBackground('01n')).toBe('clear')
+      expect(getWeatherBackground('01n')).toBe('night')
+    })
+
+    it('returns night for nighttime weather icons', () => {
+      expect(getWeatherBackground('01n')).toBe('night')
+
+      expect(getWeatherBackground('02n')).toBe('night')
+
+      expect(getWeatherBackground('10n')).toBe('night')
     })
 
     it('returns cloudy for cloud weather icons', () => {
