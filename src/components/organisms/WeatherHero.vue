@@ -1,5 +1,7 @@
 <script setup lang="ts">
-import { getWeatherIconUrl } from '@/utils/weather'
+import { computed } from 'vue'
+
+import { getWeatherBackground, getWeatherIconUrl } from '@/utils/weather'
 
 const props = defineProps<{
   city: string
@@ -14,11 +16,13 @@ const emit = defineEmits<{
   refresh: []
 }>()
 
-const weatherIconUrl = getWeatherIconUrl(props.weatherIcon)
+const weatherBackground = computed(() => getWeatherBackground(props.weatherIcon))
+
+const weatherIconUrl = computed(() => getWeatherIconUrl(props.weatherIcon))
 </script>
 
 <template>
-  <section class="weather-hero">
+  <section class="weather-hero" :class="`weather-hero--${weatherBackground}`">
     <div class="weather-hero__heading">
       <h1 class="weather-hero__city">
         {{ city }}
@@ -72,13 +76,49 @@ const weatherIconUrl = getWeatherIconUrl(props.weatherIcon)
 
   border-radius: 0 0 32px 32px;
 
-  background: linear-gradient(180deg, #2f80ed 0%, #68a5f5 100%);
-
   color: white;
   text-align: center;
 
+  transition: background 0.3s ease;
+
+  // Clear daytime weather
+  &--clear {
+    background: linear-gradient(180deg, #3f72a8 0%, #6fa8cf 100%);
+  }
+
+  // Cloudy daytime weather
+  &--cloudy {
+    background: linear-gradient(180deg, #667db6 0%, #8796b0 100%);
+  }
+
+  // Rainy daytime weather
+  &--rain {
+    background: linear-gradient(180deg, #314755 0%, #5d7180 100%);
+  }
+
+  // Storm
+  &--storm {
+    background: linear-gradient(180deg, #232526 0%, #414345 100%);
+  }
+
+  // Snow
+  &--snow {
+    background: linear-gradient(180deg, #6689b6 0%, #9dc7dc 100%);
+  }
+
+  // Mist / fog
+  &--mist {
+    background: linear-gradient(180deg, #657080 0%, #929cab 100%);
+  }
+
+  // Any nighttime weather
+  &--night {
+    background: linear-gradient(180deg, #101a35 0%, #263b63 100%);
+  }
+
   &__heading {
     width: 100%;
+
     text-align: center;
   }
 
