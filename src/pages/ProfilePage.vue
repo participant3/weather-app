@@ -254,7 +254,7 @@ function handleSave(updatedProfile: UserProfile): void {
     text-align: center;
 
     h2 {
-      margin: 18px 0 6px;
+      margin: 30px 0 6px;
 
       font-size: 24px;
       font-weight: 500;
